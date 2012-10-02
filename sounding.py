@@ -12,6 +12,7 @@ __license__ = 'Free.'
 
 import alsaaudio
 import audioop
+import math
 import logging
 import logging.handlers
 import os
@@ -22,6 +23,9 @@ import time
 CHANNELS = 1  # Mono
 RATE = 8000  # 8 kHz
 FORMAT = alsaaudio.PCM_FORMAT_S16_LE  # 16bit Little Endian
+
+# http://stackoverflow.com/questions/2445756/how-can-i-calculate-audio-db-level
+MAX_AMPLITUDE = 32767
 
 # The period size controls the internal number of frames per period.
 # The significance of this parameter is documented in the ALSA api.
@@ -71,9 +75,23 @@ def main():
     while True:
         data_len, data = audio.read()
         if data_len:
+            audio_max = audioop.max(data, 2)
+            audio_rms = audioop.rms(data, 2)
+            amplitude = float(audio_max) / float(MAX_AMPLITUDE)
+            dBg = 20 * math.log10(amplitude)
             logger.info(
-                "%f rms=%s max=%s\n"
-                % (time.time(), audioop.max(data, 2), audioop.rms(data, 2)))
+                "%f CHANNELS=%s RATE=%s MAX_AMPLITUDE=%s "
+                "rms=%s max=%s amplitude=%f dBg=%f\n" % (
+                    time.time(),
+                    CHANNELS,
+                    RATE,
+                    MAX_AMPLITUDE,
+                    audio_rms,
+                    audio_max,
+                    amplitude,
+                    dBg
+                )
+            )
         time.sleep(SLEEP)
 
 
