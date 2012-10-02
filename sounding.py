@@ -5,6 +5,9 @@ of the capture, and reads in a loop, then prints the volume.
 
 To test it out, run it and shout at your microphone.
 """
+__author__ = 'Greg Albrecht <mailto:gba@splunk.com>'
+__copyright__ = 'None.'
+__license__ = 'Free.'
 
 
 import alsaaudio
