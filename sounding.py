@@ -16,6 +16,7 @@ import math
 import logging
 import logging.handlers
 import os
+import socket
 import sys
 import time
 
@@ -42,19 +43,23 @@ SLEEP = .01
 # Syslog destination
 LOGHOST = os.environ.get('LOGHOST')
 LOGPORT = os.environ.get('LOGPORT')
+LOG_FORMAT = '%(asctime)s log_src=%(name)s %(message)s'
 
 
 def setup_logger():
-    my_logger = logging.getLogger('MyLogger')
+    my_logger = logging.getLogger(socket.gethostname())
     my_logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(LOG_FORMAT)
 
     # Syslog dest
     syslog_handler = logging.handlers.SysLogHandler(
             address=(LOGHOST, int(LOGPORT)))
+    syslog_handler.setFormatter(formatter)
     if LOGHOST is not None and LOGPORT is not None:
         my_logger.addHandler(syslog_handler)
 
     console_logger = logging.StreamHandler()
+    console_logger.setFormatter(formatter)
     my_logger.addHandler(console_logger)
 
     return my_logger
@@ -80,9 +85,8 @@ def main():
             amplitude = float(audio_max) / float(MAX_AMPLITUDE)
             dBg = 20 * math.log10(amplitude)
             logger.info(
-                "%f CHANNELS=%s RATE=%s MAX_AMPLITUDE=%s "
+                "CHANNELS=%s RATE=%s MAX_AMPLITUDE=%s "
                 "rms=%s max=%s amplitude=%f dBg=%f\n" % (
-                    time.time(),
                     CHANNELS,
                     RATE,
                     MAX_AMPLITUDE,
