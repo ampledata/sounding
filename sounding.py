@@ -50,7 +50,7 @@ def setup_logger():
 
     # Syslog dest
     syslog_handler = logging.handlers.SysLogHandler(
-            address=(LOGHOST, LOGPORT))
+            address=(LOGHOST, int(LOGPORT)))
     if LOGHOST is not None and LOGPORT is not None:
         my_logger.addHandler(syslog_handler)
 
