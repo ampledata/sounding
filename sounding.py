@@ -4,10 +4,16 @@ The script opens an ALSA pcm for sound capture. Set various attributes
 of the capture, and reads in a loop, then prints the volume.
 
 To test it out, run it and shout at your microphone.
+
+See the associated article:
+    http://ampledata.org/blue_angels_flyover_detection_using_splunk.html
+
+Source: https://github.com/ampledata/sounding
 """
-__author__ = 'Greg Albrecht <mailto:gba@splunk.com>'
-__copyright__ = 'None.'
-__license__ = 'Free.'
+
+__author__ = 'Greg Albrecht <gba@gregalbrecht.com>'
+__copyright__ = 'Copyright 2012 Greg Albrecht'
+__license__ = 'Creative Commons Attribution 3.0 Unported License.'
 
 
 import alsaaudio
@@ -53,7 +59,7 @@ def setup_logger():
 
     # Syslog dest
     syslog_handler = logging.handlers.SysLogHandler(
-            address=(LOGHOST, int(LOGPORT)))
+        address=(LOGHOST, int(LOGPORT)))
     syslog_handler.setFormatter(formatter)
     if LOGHOST is not None and LOGPORT is not None:
         my_logger.addHandler(syslog_handler)
