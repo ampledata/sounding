@@ -17,6 +17,7 @@ __license__ = 'Creative Commons Attribution 3.0 Unported License.'
 
 
 import alsaaudio
+
 import audioop
 import math
 import logging
@@ -83,7 +84,8 @@ def setup_audio():
 def main():
     audio = setup_audio()
     logger = setup_logger()
-    while True:
+    
+    while 1:
         data_len, data = audio.read()
         if data_len:
             audio_max = audioop.max(data, 2)
@@ -92,15 +94,14 @@ def main():
             dBg = 20 * math.log10(amplitude)
             logger.info(
                 "CHANNELS=%s RATE=%s MAX_AMPLITUDE=%s "
-                "rms=%s max=%s amplitude=%f dBg=%f\n" % (
-                    CHANNELS,
-                    RATE,
-                    MAX_AMPLITUDE,
-                    audio_rms,
-                    audio_max,
-                    amplitude,
-                    dBg
-                )
+                "rms=%s max=%s amplitude=%f dBg=%f\n",
+                CHANNELS,
+                RATE,
+                MAX_AMPLITUDE,
+                audio_rms,
+                audio_max,
+                amplitude,
+                dBg
             )
         time.sleep(SLEEP)
 
