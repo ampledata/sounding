@@ -5,6 +5,11 @@ of the capture, and reads in a loop, then prints the volume.
 
 To test it out, run it and shout at your microphone.
 
+Required: libasound2-dev
+RPi:
+# Keep snd-usb-audio from beeing loaded as first soundcard
+#options snd-usb-audio index=-2
+
 See the associated article:
     http://ampledata.org/blue_angels_flyover_detection_using_splunk.html
 
@@ -72,18 +77,19 @@ def main():
     while 1:
         data_len, data = audio.read()
         if data_len:
-            audio_max = audioop.max(data, 2)
-            audio_rms = audioop.rms(data, 2)
-            amplitude = float(audio_max) / float(MAX_AMPLITUDE)
-            dBg = 20 * math.log10(amplitude)
-            timestamp = time.time()
-            collect_metric('audio_rms', audio_rms, timestamp)
-            collect_metric('audio_max', audio_max, timestamp)
-            collect_metric('amplitude', amplitude, timestamp)
-            collect_metric('dBg', dBg, timestamp)
-
-        time.sleep(SLEEP)
-
+            try:
+                audio_max = audioop.max(data, 2)
+                audio_rms = audioop.rms(data, 2)
+                amplitude = float(audio_max) / float(MAX_AMPLITUDE)
+                dBg = 20 * math.log10(amplitude)
+                timestamp = time.time()
+                collect_metric('audio_rms', audio_rms, timestamp)
+                collect_metric('audio_max', audio_max, timestamp)
+                collect_metric('amplitude', amplitude, timestamp)
+                collect_metric('dBg', dBg, timestamp)
+                time.sleep(SLEEP)
+            except audioop.error:
+                pass
 
 if __name__ == '__main__':
     sys.exit(main())
