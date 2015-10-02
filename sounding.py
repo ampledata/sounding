@@ -90,6 +90,8 @@ def main():
                 time.sleep(SLEEP)
             except audioop.error:
                 pass
+            except ValueError:
+                pass
 
 if __name__ == '__main__':
     sys.exit(main())
