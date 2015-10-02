@@ -12,16 +12,14 @@ Source: https://github.com/ampledata/sounding
 """
 
 __author__ = 'Greg Albrecht <gba@gregalbrecht.com>'
-__copyright__ = 'Copyright 2012 Greg Albrecht'
-__license__ = 'Creative Commons Attribution 3.0 Unported License.'
+__copyright__ = 'Copyright 2015 Greg Albrecht'
+__license__ = 'Apache License, Version 2.0'
 
 
 import alsaaudio
 
 import audioop
 import math
-import logging
-import logging.handlers
 import os
 import socket
 import sys
@@ -47,29 +45,16 @@ PERIODSIZE = 160
 # Seconds to sleep between samples
 SLEEP = .01
 
-# Syslog destination
-LOGHOST = os.environ.get('LOGHOST')
-LOGPORT = os.environ.get('LOGPORT')
-LOG_FORMAT = '%(asctime)s log_src=%(name)s %(message)s'
+COLLECTD_HOST = os.environ.get('COLLECTD_HOST')
+COLLECTD_PORT = os.environ.get('COLLECTD_PORT', 2003)
 
 
-def setup_logger():
-    my_logger = logging.getLogger(socket.gethostname())
-    my_logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(LOG_FORMAT)
-
-    # Syslog dest
-    syslog_handler = logging.handlers.SysLogHandler(
-        address=(LOGHOST, int(LOGPORT)))
-    syslog_handler.setFormatter(formatter)
-    if LOGHOST is not None and LOGPORT is not None:
-        my_logger.addHandler(syslog_handler)
-
-    console_logger = logging.StreamHandler()
-    console_logger.setFormatter(formatter)
-    my_logger.addHandler(console_logger)
-
-    return my_logger
+def collect_metric(name, value, timestamp, prefix='sounding'):
+    metric_name = '.'.join([prefix, name])
+    sock = socket.socket()
+    sock.connect((COLLECTD_HOST, COLLECTD_PORT) )
+    sock.send("%s %d %d\n" % (metric_name, value, timestamp))
+    sock.close()
 
 
 def setup_audio():
@@ -83,8 +68,7 @@ def setup_audio():
 
 def main():
     audio = setup_audio()
-    logger = setup_logger()
-    
+
     while 1:
         data_len, data = audio.read()
         if data_len:
@@ -92,17 +76,12 @@ def main():
             audio_rms = audioop.rms(data, 2)
             amplitude = float(audio_max) / float(MAX_AMPLITUDE)
             dBg = 20 * math.log10(amplitude)
-            logger.info(
-                "CHANNELS=%s RATE=%s MAX_AMPLITUDE=%s "
-                "rms=%s max=%s amplitude=%f dBg=%f\n",
-                CHANNELS,
-                RATE,
-                MAX_AMPLITUDE,
-                audio_rms,
-                audio_max,
-                amplitude,
-                dBg
-            )
+            timestamp = time.time()
+            collect_metric('audio_rms', audio_rms, timestamp)
+            collect_metric('audio_max', audio_max, timestamp)
+            collect_metric('amplitude', amplitude, timestamp)
+            collect_metric('dBg', dBg, timestamp)
+
         time.sleep(SLEEP)
 
 
